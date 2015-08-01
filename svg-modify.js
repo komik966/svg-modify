@@ -22,7 +22,7 @@ function getFolder(filePath) {
  * @returns {string} clear svg-code
  */
 function clearInput(input) {
-    var output = input.replace(new RegExp('([\r\n\t]|\\s{2,})', 'g'), '');
+    var output = input.replace(new RegExp('([\r\n\t]|\s{2,})', 'g'), '');
 
     output = output.replace(new RegExp('(<)(.*?)(xml |dtd)(.*?)(>)', 'g'), '');
 
@@ -179,7 +179,7 @@ function changeSVG(filePath, destPath, config) {
         var svgBody = getSVGBody(input);
         svgBody = changeColor(svgBody, config, folder);
 
-        out = svgHead + svgBody + svgTail;
+        out = '<?xml version="1.0"?>' + svgHead + svgBody + svgTail;
     }
 
     grunt.file.write(destPath, out);
@@ -225,49 +225,60 @@ svgmodify.makeChanges = function(params) {
         config = params.folderOptions,
         colorize = params.colorize === false ? false : true,
         defaults = params.defaults;
+        //
+        sizes = params.sizes
+        colors = params.colors;
 
     svgmodify.defaultColor = params.defaultColor;
 
     var sources = grunt.file.expand(inputFolder + '**/*.svg');
 
-    sources.forEach(function(filePath) {
-        var folder = getFolder(filePath),
-            destFolder = outputFolder + folder + '/',
-            fileName = path.basename(filePath, '.svg'),
-            fileNameExt = path.basename(filePath),
-            destPath = destFolder + fileNameExt,
-            fileOptions = {};
+    sizes.forEach(function(size){
+        colors.forEach(function(color){
+            console.log(size + '/' + color);
+            sources.forEach(function(filePath) {
+                var folder = getFolder(filePath),
+                    destFolder = outputFolder + size + '/' + color + '/',
+                    fileName = path.basename(filePath, '.svg'),
+                    fileNameExt = path.basename(filePath),
+                    destPath = destFolder + fileNameExt,
+                    fileOptions = {
+                        'color': '#' + color,
+                        'width': size
+                    };
 
-        if (config && config[fileName]) {
+                // if (config && config[fileName]) {
 
-            fileOptions = config[fileName];
-            fileOptions['colorize'] = colorize;
-            if (defaults) {
-                fileOptions['defaults'] = defaults;
-            }
-        }
+                //     fileOptions = config[fileName];
+                //     fileOptions['colorize'] = colorize;
+                //     if (defaults) {
+                //         fileOptions['defaults'] = defaults;
+                //     }
+                // }
 
-        if (Array.isArray(fileOptions)) {
-            // copy initial file, add default color if exist
-            if (svgmodify.defaultColor) {
-                if (defaults) {
-                    fileOptions['defaults'] = defaults[fileName];
-                }
-                changeSVG(filePath, destPath, fileOptions);
-            } else {
-                grunt.file.copy(filePath, destPath);
-            }
-            // create variations of file
-            fileOptions.forEach(function(props) {
-                destPath = destFolder + svgmodify.fileNameModf(fileName, props) + '.svg';
-                if (defaults) {
-                    props['defaults'] = defaults[fileName];
-                }
-                changeSVG(filePath, destPath, props);
+                // if (Array.isArray(fileOptions)) {
+                //     // copy initial file, add default color if exist
+                //     if (svgmodify.defaultColor) {
+                //         if (defaults) {
+                //             fileOptions['defaults'] = defaults[fileName];
+                //         }
+                //         changeSVG(filePath, destPath, fileOptions);
+                //     } else {
+                //         grunt.file.copy(filePath, destPath);
+                //     }
+                //     // create variations of file
+                //     fileOptions.forEach(function(props) {
+                //         destPath = destFolder + svgmodify.fileNameModf(fileName, props) + '.svg';
+                //         if (defaults) {
+                //             props['defaults'] = defaults[fileName];
+                //         }
+                //         changeSVG(filePath, destPath, props);
+                //     });
+                // } else {
+                    changeSVG(filePath, destPath, fileOptions);
+                // }
             });
-        } else {
-            changeSVG(filePath, destPath, fileOptions);
-        }
+        });
     });
 };
 
