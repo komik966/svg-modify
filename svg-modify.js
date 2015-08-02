@@ -135,7 +135,7 @@ function getSVGBody(input) {
 function changeColor(input, config) {
     var out = input;
     var shapeColor = svgmodify.defaultColor; // set default color
-    var hasFill = input.indexOf('g fill') > 0;
+    var hasFill = input.indexOf('fill') > 0;
     var colorize = config['colorize'];
     var defaults = config['defaults'];
 
@@ -148,12 +148,12 @@ function changeColor(input, config) {
     } else if (defaults && defaults.color) {
         shapeColor = defaults.color;
     }
-
     if (shapeColor && hasFill) {
         out = input.replace(new RegExp('(fill=")(.*?)(")', 'g'), 'fill="' + shapeColor + '"');
     } else if (shapeColor) {
-        out = '<g fill="' + shapeColor + '">' + out + '</g>';
+        out = '<g fill="' + shapeColor + '" stroke="' + shapeColor + '">' + out + '</g>';
     }
+    out = out.replace(new RegExp('(stroke=")(.*?)(")', 'g'), 'stroke="' + shapeColor + '"');
 
     return out;
 }
