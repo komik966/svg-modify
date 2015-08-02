@@ -114,7 +114,7 @@ function rebuildSvgHead(input, newAttrsObj) {
         var key = svgKeys[i];
         out += ' ' + key + '="' + attrsObj[key] + '"';
     }
-    out = '<svg' + out + '>';
+    out = '<svg' + out + ' xmlns:xlink="http://www.w3.org/1999/xlink">';
 
     return out;
 }
@@ -234,51 +234,35 @@ svgmodify.makeChanges = function(params) {
     var sources = grunt.file.expand(inputFolder + '**/*.svg');
 
     sizes.forEach(function(size){
-        colors.forEach(function(color){
-            console.log(size + '/' + color);
+        if(colors){
+            colors.forEach(function(color){
+                console.log(size + '/' + color);
+                sources.forEach(function(filePath) {
+                    var folder = getFolder(filePath),
+                        destFolder = outputFolder + size + '/' + color + '/',
+                        fileName = path.basename(filePath, '.svg'),
+                        fileNameExt = path.basename(filePath),
+                        destPath = destFolder + fileNameExt,
+                        fileOptions = {
+                            'color': '#' + color,
+                            'width': size
+                        };
+                        changeSVG(filePath, destPath, fileOptions);
+                });
+            });
+        } else{
             sources.forEach(function(filePath) {
                 var folder = getFolder(filePath),
-                    destFolder = outputFolder + size + '/' + color + '/',
+                    destFolder = outputFolder + size + '/',
                     fileName = path.basename(filePath, '.svg'),
                     fileNameExt = path.basename(filePath),
                     destPath = destFolder + fileNameExt,
                     fileOptions = {
-                        'color': '#' + color,
                         'width': size
                     };
-
-                // if (config && config[fileName]) {
-
-                //     fileOptions = config[fileName];
-                //     fileOptions['colorize'] = colorize;
-                //     if (defaults) {
-                //         fileOptions['defaults'] = defaults;
-                //     }
-                // }
-
-                // if (Array.isArray(fileOptions)) {
-                //     // copy initial file, add default color if exist
-                //     if (svgmodify.defaultColor) {
-                //         if (defaults) {
-                //             fileOptions['defaults'] = defaults[fileName];
-                //         }
-                //         changeSVG(filePath, destPath, fileOptions);
-                //     } else {
-                //         grunt.file.copy(filePath, destPath);
-                //     }
-                //     // create variations of file
-                //     fileOptions.forEach(function(props) {
-                //         destPath = destFolder + svgmodify.fileNameModf(fileName, props) + '.svg';
-                //         if (defaults) {
-                //             props['defaults'] = defaults[fileName];
-                //         }
-                //         changeSVG(filePath, destPath, props);
-                //     });
-                // } else {
                     changeSVG(filePath, destPath, fileOptions);
-                // }
             });
-        });
+        }
     });
 };
 
